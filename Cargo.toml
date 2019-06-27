@@ -5,3 +5,5 @@ authors = ["Simon Walker <s.r.walker101@googlemail.com>"]
 edition = "2018"
 
 [dependencies]
+structopt = "0.2.18"
+tempdir = "0.3.7"
