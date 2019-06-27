@@ -52,7 +52,7 @@ impl FromStr for Language {
 }
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "makeproject", about = "Create projects with templates easily")]
+#[structopt(name = "mkproject", about = "Create projects with templates easily")]
 struct Opt {
     #[structopt(short = "l", long = "language")]
     language: Language,
@@ -184,7 +184,7 @@ mod tests {
 
     #[test]
     fn creating_a_rust_project() {
-        let temp_dir = TempDir::new("makeproject-rust-project").unwrap();
+        let temp_dir = TempDir::new("mkproject-rust-project").unwrap();
         let path = temp_dir.path().join("myproject");
 
         create_rust_project(&path).expect("creating Rust project");
@@ -200,7 +200,7 @@ mod tests {
 
     #[test]
     fn creating_a_python_project() {
-        let temp_dir = TempDir::new("makeproject-rust-project").unwrap();
+        let temp_dir = TempDir::new("mkproject-rust-project").unwrap();
         let path = temp_dir.path().join("myproject");
 
         create_python_project(&path).expect("creating a Python project");
