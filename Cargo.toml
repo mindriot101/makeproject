@@ -7,3 +7,5 @@ edition = "2018"
 [dependencies]
 structopt = "0.2.18"
 tempdir = "0.3.7"
+log = "0.4.6"
+env_logger = "0.6.1"

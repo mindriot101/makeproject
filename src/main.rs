@@ -1,3 +1,4 @@
+use log::debug;
 use std::io::Write;
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -60,6 +61,11 @@ struct Opt {
     path: PathBuf,
 }
 
+fn run_command(cmd: &mut process::Command) -> Result<(), MakeProjectError> {
+    let op = cmd.output()?;
+    check_status(op)
+}
+
 fn check_status(op: process::Output) -> Result<(), MakeProjectError> {
     let status = op.status;
     if !status.success() {
@@ -74,6 +80,7 @@ fn check_status(op: process::Output) -> Result<(), MakeProjectError> {
 }
 
 fn create_readme(path: &PathBuf) -> Result<(), MakeProjectError> {
+    debug!("Creating initial readme");
     let readme_path = path.join("README.md");
     let project_name = compute_project_name(path);
     let mut file = fs::File::create(readme_path)?;
@@ -93,37 +100,47 @@ fn compute_project_name(project_path: &PathBuf) -> std::ffi::OsString {
 }
 
 fn create_python_project(path: &PathBuf) -> Result<(), MakeProjectError> {
+    debug!("Creating dir: {:?}", path);
+
     fs::create_dir(&path)?;
 
     let venv_path = path.join("venv");
 
-    let op = process::Command::new("python3")
-        .arg("-m")
-        .arg("venv")
-        .arg(venv_path)
-        .output()?;
+    debug!("Creating virtual environment");
+    run_command(
+        process::Command::new("python3")
+            .arg("-m")
+            .arg("venv")
+            .arg(&venv_path),
+    )?;
 
-    check_status(op)?;
+    debug!("Installing ipython");
+    run_command(
+        process::Command::new(venv_path.join("bin").join("pip"))
+            .arg("install")
+            .arg("ipython"),
+    )?;
+
     create_readme(path)?;
     Ok(())
 }
 
 // TODO: add optional language-specific arguments
 fn create_rust_project(path: &PathBuf) -> Result<(), MakeProjectError> {
-    let op = process::Command::new("cargo")
-        .arg("new")
-        .arg(path.to_str().unwrap())
-        .output()?;
-
-    // Ignore stdout and stderr
-
-    check_status(op)?;
+    debug!("Running cargo new");
+    run_command(
+        process::Command::new("cargo")
+            .arg("new")
+            .arg(path.to_str().unwrap()),
+    )?;
 
     create_readme(path)?;
     Ok(())
 }
 
 fn main() -> Result<(), MakeProjectError> {
+    env_logger::init();
+
     let opts = Opt::from_args();
 
     let result = match opts.language {
@@ -193,5 +210,8 @@ mod tests {
 
         let readme_contents = fs::read_to_string(path.join("README.md")).unwrap();
         assert_eq!(readme_contents, "# myproject\n");
+
+        // Check that ipython is installed
+        assert!(path.join("venv").join("bin").join("ipython").is_file());
     }
 }
